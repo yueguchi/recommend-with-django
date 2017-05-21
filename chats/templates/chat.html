@@ -3,6 +3,12 @@
 
 {% block content %}
 <div>
-    チャットエリア: {{ message }}
+    <p>チャットエリア: {{ message }}</p>
+    <p>debug</p>
+    <ul>
+        {% for tok in tokens %}
+            <li>{{ tok }}</li>
+        {% endfor %}
+    </ul>
 </div>
 {% endblock %}

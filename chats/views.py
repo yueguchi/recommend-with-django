@@ -13,4 +13,4 @@ def index(request):
             w = tok.base_form
         ret.append(w)
     message = (" ".join(ret)).strip()
-    return render(request, 'chat.html', {'message': message})
+    return render(request, 'chat.html', {'message': message, 'tokens': tokens})
