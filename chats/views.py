@@ -2,7 +2,7 @@ from django.shortcuts import render
 from janome.tokenizer import Tokenizer
 
 def index(request):
-    message = "隣の客はよく柿食う客だ"
+    message = request.GET.get(key="message", default="すもももももももものうち")
     t = Tokenizer()
     tokens = t.tokenize(message)
     ret = []
@@ -12,5 +12,5 @@ def index(request):
         else:
             w = tok.base_form
         ret.append(w)
-    message = (" ".join(ret)).strip()
+    message = (" | ".join(ret)).strip()
     return render(request, 'chat.html', {'message': message, 'tokens': tokens})
