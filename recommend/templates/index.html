@@ -1,0 +1,125 @@
+{% extends "common.html" %}
+{% load humanize %}
+{% block content %}
+<div>
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="alert alert-success {{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% csrf_token %}
+    <section>
+        購入者: 
+        <select id="user_names" data-selected={{ selected }}>
+             <option>選択してください</option>
+            {% for user in users %}
+                <option value={{ user.name }}>{{ user }}</option>
+            {% endfor %}
+        </select>
+        {% if selected %}
+            <h2>{{ selected }}さんへのオススメ商品</h2>
+            <table border="1" class="table">
+                <thead>
+                    <tr>
+                        <th>商品名</th>
+                        <th>価格</th>
+                        <th>カテゴリ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for recommend in recommend_items %}
+                    <tr>
+                        <td>{{ recommend.name }}</td>
+                        <td>¥{{ recommend.price|intcomma }}</td>
+                        <td>{{ recommend.category.name }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </section>
+    <section>
+        <h2 class="alert alert-info">商品一覧</h2>
+        <table border="1" class="table">
+            <thead>
+                <tr>
+                    <th>商品名</th>
+                    <th>価格</th>
+                    <th>カテゴリ</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in items %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>¥{{ item.price|intcomma }}</td>
+                    <td>{{ item.category.name }}</td>
+                    <td>
+                        <input
+                            type="button"
+                            class="btn btn-danger pur-btns"
+                            value="購入"
+                            name="purchase"
+                            data-value={{ item.id }}
+                            data-category={{ item.category_id }}
+                        >
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function(){
+        var userSelectbox = document.getElementById("user_names");
+        [].forEach.call(userSelectbox.options, function(option) {
+            var selectedName = userSelectbox.getAttribute('data-selected');
+            if (option.value === selectedName) {
+                option.selected = true;
+                return;
+            }
+        });
+        // 購入者変更イベント
+        userSelectbox.addEventListener("change", function(e) {
+            var selectedIndex = e.target.selectedIndex;
+            var userName = this.options[selectedIndex].value;
+            location.href = "/recommend/?user_name=" + userName;
+        });
+        // 購入イベント
+        [].forEach.call(document.getElementsByClassName("pur-btns"), function(element) {
+            element.addEventListener('click', function(event) {
+                // input csrf
+                var csrfTokenValue = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                var csrfTokenInput = document.createElement('input');
+                csrfTokenInput.setAttribute('type', 'hidden');
+                csrfTokenInput.setAttribute('name', 'csrfmiddlewaretoken');
+                csrfTokenInput.setAttribute('value', csrfTokenValue);
+                // 商品id
+                var itemIdInput = document.createElement('input');
+                itemIdInput.setAttribute('type', 'hidden');
+                itemIdInput.setAttribute('name', 'item_id');
+                itemIdInput.setAttribute('value', this.getAttribute("data-value"));
+                // 購入者名
+                var userNameInput = document.createElement('input');
+                userNameInput.setAttribute('type', 'hidden');
+                userNameInput.setAttribute('name', 'user_name');
+                userNameInput.setAttribute('value', document.getElementById("user_names").value);
+                // フォームの作成
+                var form = document.createElement('form');
+                form.action = '/recommend/purchase/';
+                form.method = 'post';
+                form.appendChild(csrfTokenInput);
+                form.appendChild(itemIdInput);
+                form.appendChild(userNameInput);
+                document.body.appendChild(form);
+                form.submit();
+            });
+        });
+    });
+</script>
+{% endblock %}

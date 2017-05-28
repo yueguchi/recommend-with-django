@@ -37,8 +37,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'hello',
-    'chats'
+    'django.contrib.humanize',
+    'recommend'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -137,3 +137,8 @@ STATICFILES_DIRS = (
 # https://warehouse.python.org/project/whitenoise/
 STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
 
+# これを追加しないと、1.4からはhumanizeのintcommaが有効にならない
+NUMBER_GROUPING = 3
+
+# flashメッセージ
+MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
