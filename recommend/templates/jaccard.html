@@ -1,0 +1,25 @@
+{% extends "common.html" %}
+{% load humanize %}
+{% block content %}
+<div>
+    {% csrf_token %}
+    <section>
+        <h2 class="alert alert-info">jaccard指数確認表</h2>
+        <table border="1">
+            <tr>
+                <td></td>{% for user in users %}<td>{{ user.name }}</td>{% endfor %}
+            </tr>
+            {% for item in items %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    {% for points in purchase_user_base_matrix %}
+                        {% for p in points %}
+                            <td>{{p}}</td>
+                        {% endfor %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    </section>
+</div>
+{% endblock %}

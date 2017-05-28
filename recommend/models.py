@@ -47,6 +47,10 @@ class Purchases(models.Model):
         return self.item.name + " ( " + self.user.name + " ) " + " - " + self.item.category.name + " - "
 
     def getRecommend(self, user_name):
+        """
+        アイテムベース協調フィルタリングであるジャッカード指数アルゴリズムにより、
+        ユーザーが購入した商品の類似商品を搜索し、返却する
+        """
         if len(user_name) == 0: return
         user_purchases = Purchases.objects.filter(user_id=Users.objects.get(name=user_name).id)
 
@@ -78,14 +82,32 @@ class Purchases(models.Model):
 
 
     def jaccard(e1, e2):
+        """
+        A&&B集合 / A||B集合で近似値を測るアルゴリズム
+        """
         set_e1 = set(e1)
         set_e2 = set(e2)
         return float(len(set_e1 & set_e2)) / float(len(set_e1 | set_e2))
 
 
     def getUniqueRecommendItems(recommend_scores, already_purchased_item_id_list):
+        """
+        ジャッカードで得られた結果から、既に所有しているアイテム商品を省くだけの処理
+        """
         ids = []
         for key, score in recommend_scores.items():
             if key in already_purchased_item_id_list: continue
             ids.append(key)
         return Items.objects.filter(id__in=(ids))
+
+
+    def getPurchaseUserBaseMatrix(items, users):
+        item_base_mat = {}
+        for item in items:
+            item_base_mat[item.id] = []
+            for user in users:
+                if  len(Purchases.objects.filter(user_id = user.id, item_id = item.id)) > 0:
+                    item_base_mat[item.id].append("○")
+                else:
+                    item_base_mat[item.id].append("-")
+        return item_base_mat

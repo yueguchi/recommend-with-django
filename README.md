@@ -16,10 +16,12 @@ $ pip install -r requirements.txt
 
 $ createdb python_getting_started
 
-$ python manage.py migrate
-$ python manage.py collectstatic
+$ ./manage.py migrate
+$ ./manage.py collectstatic
+$ ./manage.py createsuperuser
 
-$ heroku local
+$ heroku local or ./manage.py runserver
+※http://localhost/admin/でデータ投入してね。createsuperuserで作成したユーザーでloginできるよ
 ```
 
 Your app should now be running on [localhost:5000](http://localhost:5000/).
@@ -32,6 +34,7 @@ $ git push heroku master
 
 $ heroku run python manage.py migrate
 $ heroku open
+※http://[host]/admin/でデータ投入してね。createsuperuserで作成したユーザーでloginできるよ
 ```
 or
 
@@ -42,3 +45,10 @@ or
 For more information about using Python on Heroku, see these Dev Center articles:
 
 - [Python on Heroku](https://devcenter.heroku.com/categories/python)
+
+
+## other tips
+```sh
+$ ./manage.py dbshell
+$ ./manage.py shell
+```
