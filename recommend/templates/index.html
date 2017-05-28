@@ -31,11 +31,11 @@
                 </thead>
                 <tbody>
                 {% for recommend in recommend_items %}
-                    <tr>
-                        <td>{{ recommend.name }}</td>
-                        <td>¥{{ recommend.price|intcomma }}</td>
-                        <td>{{ recommend.category.name }}</td>
-                    </tr>
+                        <tr>
+                            <td>{{ recommend.name }}</td>
+                            <td>{{ recommend.price }}</td>
+                            <td>{{ recommend.category }}</td>
+                        </tr>
                 {% endfor %}
                 </tbody>
             </table>

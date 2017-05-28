@@ -48,7 +48,7 @@ class Purchases(models.Model):
 
     def getRecommend(self, user_name):
         """
-        アイテムベース協調フィルタリングであるジャッカード指数アルゴリズムにより、
+        アイテムベース協調フィルタリングであるジャッカール指数アルゴリズムにより、
         ユーザーが購入した商品の類似商品を搜索し、返却する
         """
         if len(user_name) == 0: return
@@ -56,11 +56,11 @@ class Purchases(models.Model):
 
         # 全購入商品を商品ID => 複数ユーザーIDで束ねる
         item_user_buyer = {}
-        for purchase in Purchases.objects.all():
+        for item in Items.objects.all():
             user_id_list = []
-            for purchase_by_item in Purchases.objects.filter(item_id=purchase.item_id):
+            for purchase_by_item in Purchases.objects.filter(item_id=item.id):
                 user_id_list.append(purchase_by_item.user_id)
-            item_user_buyer[purchase.item_id] = user_id_list
+            item_user_buyer[item.id] = user_id_list
 
         # ユーザが購入した商品を取得し、その商品との類似商品を推奨する
         purchased_items_other_users = {}
@@ -68,17 +68,22 @@ class Purchases(models.Model):
              purchased_items_other_users[purchase.item.id] = item_user_buyer[purchase.item.id]
 
         # jaccard
-        ret = {}
+        recommend_items = []
+        already_item_id_list = user_purchases.values_list('item_id', flat=True)
         # ユーザーが購入した商品をベースにループさせ
         for key1 in purchased_items_other_users:
             # 全ての商品を比較させる
+            ret = []
             for key2, item in item_user_buyer.items():
-                if key1 == key2: continue
-                ret[key2] = self.jaccard(purchased_items_other_users[key1], item)
-
-        recommend_items = self.getUniqueRecommendItems(ret, user_purchases.values_list('item_id', flat=True))
-        
-        return recommend_items
+                ret.append(str(key2) + "," + str(self.jaccard(purchased_items_other_users[key1], item)))
+            recommend_items.append(self.getUniqueRecommendItems(ret, already_item_id_list))
+        ret = []
+        # TODO なぜかgetUniqueRecommendItemsで絞りきれてないので、もう一回
+        for recommends in recommend_items:
+            for recommend in recommends:
+                if recommend.id in already_item_id_list: continue
+                ret.append(recommend)
+        return ret
 
 
     def jaccard(e1, e2):
@@ -92,11 +97,15 @@ class Purchases(models.Model):
 
     def getUniqueRecommendItems(recommend_scores, already_purchased_item_id_list):
         """
-        ジャッカードで得られた結果から、既に所有しているアイテム商品を省くだけの処理
+        ・ジャッカールで得られた結果から、既に所有しているアイテム商品を省く
+        ・ジャッカーる指数が0.5以上のみのアイテムに調整する
         """
         ids = []
-        for key, score in recommend_scores.items():
+        for keyScore in recommend_scores:
+            key = keyScore.split(",")[0]
+            score = keyScore.split(",")[1]
             if key in already_purchased_item_id_list: continue
+            if float(score) < 0.5: continue
             ids.append(key)
         return Items.objects.filter(id__in=(ids))
 

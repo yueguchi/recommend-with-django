@@ -45,7 +45,7 @@ def purchase(request):
 
 def jaccard(request):
     """
-    ジャッカード指数がきちんと生成されているか、マトリクスを表示する
+    ジャッカール指数がきちんと生成されているか、マトリクスを表示する
     """
     items = Items.objects.all()
     users = Users.objects.all()
