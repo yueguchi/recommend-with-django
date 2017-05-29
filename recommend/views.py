@@ -17,7 +17,9 @@ def index(request):
     user_name = request.GET.get('user_name', '')
     recommend_items = Purchases.getRecommend(Purchases, user_name)
     # 購入履歴取得
-    purchased_items = Purchases.objects.filter(user_id=Users.objects.get(name=user_name).id)
+    purchased_items = []
+    if user_name:
+        purchased_items = Purchases.objects.filter(user_id=Users.objects.get(name=user_name).id)
 
     return render(request, 'index.html',
         {
