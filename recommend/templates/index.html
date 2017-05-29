@@ -20,7 +20,7 @@
             {% endfor %}
         </select>
         {% if selected %}
-            <h2>{{ selected }}さんへのオススメ商品</h2>
+            <h2 class="alert alert-success">{{ selected }}さんへのオススメ商品</h2>
             <table border="1" class="table">
                 <thead>
                     <tr>
@@ -35,6 +35,25 @@
                             <td>{{ recommend.name }}</td>
                             <td>{{ recommend.price }}</td>
                             <td>{{ recommend.category }}</td>
+                        </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <h2 class="alert alert-danger">{{ selected }}さんの購入履歴</h2>
+            <table border="1" class="table">
+                <thead>
+                    <tr>
+                        <th>商品名</th>
+                        <th>価格</th>
+                        <th>カテゴリ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for history in purchased_items %}
+                        <tr>
+                            <td>{{ history.item.name }}</td>
+                            <td>{{ history.item.price }}</td>
+                            <td>{{ history.item.category }}</td>
                         </tr>
                 {% endfor %}
                 </tbody>

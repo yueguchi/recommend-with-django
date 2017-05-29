@@ -75,8 +75,8 @@ class Purchases(models.Model):
             # 全ての商品を比較させる
             ret = []
             for key2, item in item_user_buyer.items():
-                ret.append(str(key2) + "," + str(self.jaccard(purchased_items_other_users[key1], item)))
-            recommend_items.append(self.getUniqueRecommendItems(ret, already_item_id_list))
+                ret.append(str(key2) + "," + str(self.__jaccard(purchased_items_other_users[key1], item)))
+            recommend_items.append(self.__getUniqueRecommendItems(ret, already_item_id_list))
         ret = []
         # TODO なぜかgetUniqueRecommendItemsで絞りきれてないので、もう一回
         for recommends in recommend_items:
@@ -86,7 +86,7 @@ class Purchases(models.Model):
         return ret
 
 
-    def jaccard(e1, e2):
+    def __jaccard(e1, e2):
         """
         A&&B集合 / A||B集合で近似値を測るアルゴリズム
         """
@@ -95,7 +95,7 @@ class Purchases(models.Model):
         return float(len(set_e1 & set_e2)) / float(len(set_e1 | set_e2))
 
 
-    def getUniqueRecommendItems(recommend_scores, already_purchased_item_id_list):
+    def __getUniqueRecommendItems(recommend_scores, already_purchased_item_id_list):
         """
         ・ジャッカールで得られた結果から、既に所有しているアイテム商品を省く
         ・ジャッカーる指数が0.5以上のみのアイテムに調整する

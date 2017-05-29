@@ -16,12 +16,15 @@ def index(request):
     # レコメンド取得
     user_name = request.GET.get('user_name', '')
     recommend_items = Purchases.getRecommend(Purchases, user_name)
+    # 購入履歴取得
+    purchased_items = Purchases.objects.filter(user_id=Users.objects.get(name=user_name).id)
 
     return render(request, 'index.html',
         {
             'users': users,
             'items': items,
             'recommend_items': recommend_items,
+            'purchased_items': purchased_items,
             'selected': user_name
         }
     )
