@@ -48,6 +48,19 @@ def purchase(request):
     return redirect('item-list')
 
 
+def cancel(request):
+    """
+    購入者idと商品idを基に購入情報の削除キャンセルを行う
+    """
+    item_id = request.POST['item_id']
+    user_id = request.POST['user_id']
+    if request.method == 'GET' or not item_id or not user_id:
+        raise Exception('this url is not support "GET"')
+    Purchases.objects.get(item_id = item_id, user_id = user_id).delete()
+    messages.success(request, '商品を削除キャンセルしました！')
+    return redirect('item-list')
+
+
 def jaccard(request):
     """
     ジャッカール指数がきちんと生成されているか、マトリクスを表示する

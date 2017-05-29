@@ -46,6 +46,7 @@
                         <th>商品名</th>
                         <th>価格</th>
                         <th>カテゴリ</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -54,6 +55,15 @@
                             <td>{{ history.item.name }}</td>
                             <td>{{ history.item.price }}</td>
                             <td>{{ history.item.category }}</td>
+                            <td>
+                                <button
+                                    class="btn btn-danger history-delete-item"
+                                    data-value={{ history.item.id }}
+                                    data-user-id={{ history.user.id }}
+                                >
+                                削除
+                                </button>
+                            </td>
                         </tr>
                 {% endfor %}
                 </tbody>
@@ -80,7 +90,7 @@
                     <td>
                         <input
                             type="button"
-                            class="btn btn-danger pur-btns"
+                            class="btn btn-info pur-btns"
                             value="購入"
                             name="purchase"
                             data-value={{ item.id }}
@@ -107,7 +117,45 @@
         userSelectbox.addEventListener("change", function(e) {
             var selectedIndex = e.target.selectedIndex;
             var userName = this.options[selectedIndex].value;
-            location.href = "/recommend/?user_name=" + userName;
+            if (userName !== "選択してください") {
+                location.href = "/recommend/?user_name=" + userName;
+            } else {
+                location.href = "/recommend/";
+            }
+        });
+        // 購入キャンセルイベント
+        [].forEach.call(document.querySelectorAll(".history-delete-item"), function(elem) {
+            elem.addEventListener('click', function(event) {
+                itemId = this.getAttribute("data-value");
+                userId = this.getAttribute("data-user-id");
+                // input csrf
+                var csrfTokenValue = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                var csrfTokenInput = document.createElement('input');
+                csrfTokenInput.setAttribute('type', 'hidden');
+                csrfTokenInput.setAttribute('name', 'csrfmiddlewaretoken');
+                csrfTokenInput.setAttribute('value', csrfTokenValue);
+
+                // 商品id
+                var itemIdInput = document.createElement('input');
+                itemIdInput.setAttribute('type', 'hidden');
+                itemIdInput.setAttribute('name', 'item_id');
+                itemIdInput.setAttribute('value', itemId);
+                // 購入者id
+                var userIdInput = document.createElement('input');
+                userIdInput.setAttribute('type', 'hidden');
+                userIdInput.setAttribute('name', 'user_id');
+                userIdInput.setAttribute('value', userId);
+
+                // フォームの作成
+                var form = document.createElement('form');
+                form.action = '/recommend/purchase/cancel/';
+                form.method = 'post';
+                form.appendChild(csrfTokenInput);
+                form.appendChild(itemIdInput);
+                form.appendChild(userIdInput);
+                document.body.appendChild(form);
+                form.submit();
+            });
         });
         // 購入イベント
         [].forEach.call(document.getElementsByClassName("pur-btns"), function(element) {
@@ -128,6 +176,10 @@
                 userNameInput.setAttribute('type', 'hidden');
                 userNameInput.setAttribute('name', 'user_name');
                 userNameInput.setAttribute('value', document.getElementById("user_names").value);
+                if (document.getElementById("user_names").value == false || document.getElementById("user_names").value === "選択してください") {
+                    alert("購入者を選択してください");
+                    return false;
+                }
                 // フォームの作成
                 var form = document.createElement('form');
                 form.action = '/recommend/purchase/';
