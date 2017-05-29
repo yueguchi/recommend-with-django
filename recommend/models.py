@@ -98,14 +98,14 @@ class Purchases(models.Model):
     def __getUniqueRecommendItems(recommend_scores, already_purchased_item_id_list):
         """
         ・ジャッカールで得られた結果から、既に所有しているアイテム商品を省く
-        ・ジャッカーる指数が0.5以上のみのアイテムに調整する
+        ・ジャッカーる指数が0.1以上のみのアイテムに調整する
         """
         ids = []
         for keyScore in recommend_scores:
             key = keyScore.split(",")[0]
             score = keyScore.split(",")[1]
             if key in already_purchased_item_id_list: continue
-            if float(score) < 0.5: continue
+            if float(score) < 0.1: continue
             ids.append(key)
         return Items.objects.filter(id__in=(ids))
 
