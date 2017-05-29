@@ -12,4 +12,5 @@ import recommend.views
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^recommend/', include('recommend.urls')),
+    url(r'^', 'recommend.views.index'),
 ]
