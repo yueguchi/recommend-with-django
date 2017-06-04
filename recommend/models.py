@@ -46,14 +46,25 @@ class Purchases(models.Model):
     def __str__(self):
         return self.item.name + " ( " + self.user.name + " ) " + " - " + self.item.category.name + " - "
 
-    def getRecommend(self, user_name):
+
+    def getRecommend(self, user_name, recommend_kind):
         """
-        アイテムベース協調フィルタリングであるジャッカール指数アルゴリズムにより、
-        ユーザーが購入した商品の類似商品を搜索し、返却する
+        ・recommend_kind == item
+            アイテムベース協調フィルタリング
+        ・recommend_kind == user
+            ユーザーベース協調フィルタリング
         """
         if len(user_name) == 0: return
         user_purchases = Purchases.objects.filter(user_id=Users.objects.get(name=user_name).id)
 
+        return self.__getItemRecommend(self, user_purchases) if recommend_kind == 'item' else self.__getUserRecommend(self, user_name, user_purchases)
+
+
+    def __getItemRecommend(self, user_purchases):
+        """
+        アイテムベース協調フィルタリングであるジャッカール指数アルゴリズムにより、
+        ユーザーが購入した商品の類似商品を搜索し、返却する
+        """
         # 全購入商品を商品ID => 複数ユーザーIDで束ねる
         item_user_buyer = {}
         for item in Items.objects.all():
@@ -84,6 +95,51 @@ class Purchases(models.Model):
                 if recommend.id in already_item_id_list: continue
                 ret.append(recommend)
         return ret
+
+
+    def __getUserRecommend(self, user_name, user_purchases):
+        """
+        ユーザーベース協調フィルタリング
+            ユーザーの購入履歴との一致回数 / ユーザーの購入回数で求められた指数を
+            類似度を測り、レコメンドに利用する
+        """
+        scores = {}
+        for user in Users.objects.exclude(name=user_name):
+            # ユーザーの購入履歴一覧
+            for history in user_purchases:
+                # 比較退所者の購入商品一覧
+                same_count = 0
+                userPurchaseditems = Purchases.objects.filter(user_id=Users.objects.get(name=user.name).id)
+                for purchaseItem in userPurchaseditems:
+                    if history.item.id == purchaseItem.item.id:
+                        same_count += 1
+                # ["他者の名前"] => ユーザーの履歴と一致した数 / 他社の全商品購入数
+                scores[user.name] = same_count / int(userPurchaseditems.count()) if same_count > 0 else 0
+        """
+            scoresはこんな感じになってます。
+            scores = 
+                {'aaaaa': 0,
+                 'bbbbb': 0,
+                 'ccccc': 0,
+                 'ddddd': 0,
+                 'eeeee': 0.25,
+                 'ffffff': 0.3333333333333333,
+                 'gggggg': 0}
+        """
+        # 点数がある程度あるユーザーが購入してる商品でかつ見購入のものをレコメンドに入れる
+        recommend_items = []
+        append_ids = []
+        user_item_ids = []
+        # ユーザーが購入したアイテムのIDだけを管理したlist
+        for purchase in  user_purchases: user_item_ids.append(purchase.item.id)
+        for key in scores:
+            if float(scores[key]) > 0:
+                name = key
+                for purchase in Purchases.objects.filter(user_id=(Users.objects.filter(name=name).first().id)):
+                    if (purchase.item.id not in user_item_ids) and (purchase.item.id not in append_ids):
+                        recommend_items.append(Items.objects.filter(id=purchase.item.id).first())
+                        append_ids.append(purchase.item.id)
+        return recommend_items
 
 
     def __jaccard(e1, e2):

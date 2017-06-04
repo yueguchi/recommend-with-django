@@ -15,7 +15,9 @@ def index(request):
 
     # レコメンド取得
     user_name = request.GET.get('user_name', '')
-    recommend_items = Purchases.getRecommend(Purchases, user_name)
+    # レコメンド種別が「item」 or 「user」 defaultでitem
+    recommend_kind = request.GET.get('recommend_kind', 'item')
+    recommend_items = Purchases.getRecommend(Purchases, user_name, recommend_kind)
     # 購入履歴取得
     purchased_items = []
     if user_name:
@@ -27,6 +29,7 @@ def index(request):
             'items': items,
             'recommend_items': recommend_items,
             'purchased_items': purchased_items,
+            'recommend_kind': recommend_kind,
             'selected': user_name
         }
     )

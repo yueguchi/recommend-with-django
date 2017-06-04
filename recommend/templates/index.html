@@ -12,6 +12,12 @@
 
     {% csrf_token %}
     <section>
+        レコメンド種別:
+        <select id="recommend_kind" data-selected={{ recommend_kind }}>
+            <option value="item">アイテムベース</option>
+            <option value="user">ユーザーベース</option>
+        </select>
+        <br>
         購入者: 
         <select id="user_names" data-selected={{ selected }}>
              <option>選択してください</option>
@@ -105,6 +111,7 @@
 </div>
 <script>
     document.addEventListener("DOMContentLoaded", function(){
+        // 購入者の復帰処理
         var userSelectbox = document.getElementById("user_names");
         [].forEach.call(userSelectbox.options, function(option) {
             var selectedName = userSelectbox.getAttribute('data-selected');
@@ -113,21 +120,62 @@
                 return;
             }
         });
+        // レコメンド種別の復帰処理
+        var recommendKindSelectbox = document.getElementById("recommend_kind");
+        [].forEach.call(recommendKindSelectbox.options, function(option) {
+            var selectedName = recommendKindSelectbox.getAttribute('data-selected');
+            if (option.value === selectedName) {
+                option.selected = true;
+                return;
+            }
+        });
+
         // 購入者変更イベント
         userSelectbox.addEventListener("change", function(e) {
             var selectedIndex = e.target.selectedIndex;
             var userName = this.options[selectedIndex].value;
+            recommendKind = "";
+            [].forEach.call(document.getElementById("recommend_kind").options, function(elem) {
+                if(elem.selected) {
+                    recommendKind = elem.value;
+                }
+            });
             if (userName !== "選択してください") {
-                location.href = "/recommend/?user_name=" + userName;
+                location.href = "/recommend/?user_name=" + userName + "&recommend_kind=" + recommendKind;
             } else {
                 location.href = "/recommend/";
             }
         });
+
+        // レコメンド変更イベント
+        recommendKindSelectbox.addEventListener("change", function(e) {
+            var selectedIndex = e.target.selectedIndex;
+            var recommendKind = this.options[selectedIndex].value;
+            // ユーザー
+            userName = "";
+            [].forEach.call(document.getElementById("user_names").options, function(elem) {
+                if(elem.selected) {
+                    userName = elem.value;
+                }
+            });
+            if (userName !== "選択してください") {
+                location.href = "/recommend/?user_name=" + userName + "&recommend_kind=" + recommendKind;
+            } else {
+                location.href = "/recommend/";
+            }
+        });
+
         // 購入キャンセルイベント
         [].forEach.call(document.querySelectorAll(".history-delete-item"), function(elem) {
             elem.addEventListener('click', function(event) {
                 itemId = this.getAttribute("data-value");
                 userId = this.getAttribute("data-user-id");
+                recommendKind = "";
+                [].forEach.call(document.getElementById("recommend_kind").options, function(elem) {
+                    if(elem.selected) {
+                        recommend_kind = elem.value;
+                    }
+                });
                 // input csrf
                 var csrfTokenValue = document.querySelector('[name=csrfmiddlewaretoken]').value;
                 var csrfTokenInput = document.createElement('input');
@@ -145,6 +193,11 @@
                 userIdInput.setAttribute('type', 'hidden');
                 userIdInput.setAttribute('name', 'user_id');
                 userIdInput.setAttribute('value', userId);
+                // レコメンド種別
+                var recommendKindInput = document.createElement('input');
+                recommendKindInput.setAttribute('type', 'hidden');
+                recommendKindInput.setAttribute('name', 'recommend_kind');
+                recommendKindInput.setAttribute('value', recommendKind);
 
                 // フォームの作成
                 var form = document.createElement('form');
@@ -153,6 +206,7 @@
                 form.appendChild(csrfTokenInput);
                 form.appendChild(itemIdInput);
                 form.appendChild(userIdInput);
+                form.appendChild(recommendKindInput);
                 document.body.appendChild(form);
                 form.submit();
             });
@@ -160,6 +214,13 @@
         // 購入イベント
         [].forEach.call(document.getElementsByClassName("pur-btns"), function(element) {
             element.addEventListener('click', function(event) {
+                // レコメンド種別
+                recommendKind = "";
+                [].forEach.call(document.getElementById("recommend_kind").options, function(elem) {
+                    if(elem.selected) {
+                        recommend_kind = elem.value;
+                    }
+                });
                 // input csrf
                 var csrfTokenValue = document.querySelector('[name=csrfmiddlewaretoken]').value;
                 var csrfTokenInput = document.createElement('input');
@@ -180,12 +241,18 @@
                     alert("購入者を選択してください");
                     return false;
                 }
+                // レコメンド種別
+                var recommendKindInput = document.createElement('input');
+                recommendKindInput.setAttribute('type', 'hidden');
+                recommendKindInput.setAttribute('name', 'recommend_kind');
+                recommendKindInput.setAttribute('value', recommendKind);
                 // フォームの作成
                 var form = document.createElement('form');
                 form.action = '/recommend/purchase/';
                 form.method = 'post';
                 form.appendChild(csrfTokenInput);
                 form.appendChild(itemIdInput);
+                form.appendChild(recommendKindInput);
                 form.appendChild(userNameInput);
                 document.body.appendChild(form);
                 form.submit();
